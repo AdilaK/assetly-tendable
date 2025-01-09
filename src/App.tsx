@@ -23,6 +23,9 @@ function App() {
             <Route path="assets/new" element={<AssetForm />} />
             <Route path="assets/:id/edit" element={<AssetForm />} />
             <Route path="assets/:id/inspect" element={<InspectionForm />} />
+            <Route path="inspections" element={<div>Inspections Page</div>} />
+            <Route path="reports" element={<div>Reports Page</div>} />
+            <Route path="settings" element={<div>Settings Page</div>} />
           </Route>
         </Routes>
         <Toaster />
