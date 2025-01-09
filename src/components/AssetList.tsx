@@ -11,7 +11,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Plus, Search, Edit, Trash2, ClipboardList } from "lucide-react";
+import { Plus, Search, Edit, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -97,13 +97,6 @@ export function AssetList() {
                     onClick={() => navigate(`/assets/${asset.id}/edit`)}
                   >
                     <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => navigate(`/assets/${asset.id}/inspect`)}
-                  >
-                    <ClipboardList className="h-4 w-4" />
                   </Button>
                   <Button
                     variant="outline"
