@@ -31,7 +31,9 @@ type FormValues = {
   location_id: string;
   status: string;
   purchase_date: string;
-  purchase_cost: number;
+  warranty_start_date: string;
+  warranty_end_date: string;
+  warranty_details: string;
 };
 
 export function AssetForm() {
@@ -252,18 +254,40 @@ export function AssetForm() {
 
           <FormField
             control={form.control}
-            name="purchase_cost"
+            name="warranty_start_date"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Purchase Cost</FormLabel>
+                <FormLabel>Warranty Start Date</FormLabel>
                 <FormControl>
-                  <Input
-                    type="number"
-                    {...field}
-                    onChange={(e) =>
-                      field.onChange(parseFloat(e.target.value) || 0)
-                    }
-                  />
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="warranty_end_date"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Warranty End Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="warranty_details"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Warranty Details</FormLabel>
+                <FormControl>
+                  <Textarea {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>

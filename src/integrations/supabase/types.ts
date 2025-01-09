@@ -17,11 +17,13 @@ export type Database = {
           id: string
           location_id: string | null
           name: string
-          purchase_cost: number | null
           purchase_date: string | null
           serial_number: string | null
           status: string
           updated_at: string
+          warranty_details: string | null
+          warranty_end_date: string | null
+          warranty_start_date: string | null
         }
         Insert: {
           category_id?: string | null
@@ -30,11 +32,13 @@ export type Database = {
           id?: string
           location_id?: string | null
           name: string
-          purchase_cost?: number | null
           purchase_date?: string | null
           serial_number?: string | null
           status?: string
           updated_at?: string
+          warranty_details?: string | null
+          warranty_end_date?: string | null
+          warranty_start_date?: string | null
         }
         Update: {
           category_id?: string | null
@@ -43,11 +47,13 @@ export type Database = {
           id?: string
           location_id?: string | null
           name?: string
-          purchase_cost?: number | null
           purchase_date?: string | null
           serial_number?: string | null
           status?: string
           updated_at?: string
+          warranty_details?: string | null
+          warranty_end_date?: string | null
+          warranty_start_date?: string | null
         }
         Relationships: [
           {
