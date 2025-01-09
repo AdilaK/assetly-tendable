@@ -42,6 +42,23 @@ export function AssetForm() {
   const { toast } = useToast();
   const form = useForm<FormValues>();
 
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to manage assets",
+          variant: "destructive",
+        });
+        navigate("/auth");
+      }
+    };
+    
+    checkAuth();
+  }, [navigate, toast]);
+
   const { data: asset } = useQuery({
     queryKey: ["asset", id],
     queryFn: async () => {
@@ -82,6 +99,18 @@ export function AssetForm() {
   }, [asset, form]);
 
   const onSubmit = async (values: FormValues) => {
+    // Check authentication before submitting
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to manage assets",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     const operation = id
       ? supabase.from("assets").update(values).eq("id", id)
       : supabase.from("assets").insert(values);
@@ -94,6 +123,7 @@ export function AssetForm() {
         description: "Failed to save asset",
         variant: "destructive",
       });
+      console.error("Error saving asset:", error);
     } else {
       toast({
         title: "Success",
