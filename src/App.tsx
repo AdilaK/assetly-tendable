@@ -6,6 +6,7 @@ import { Dashboard } from "@/components/Dashboard";
 import { AssetList } from "@/components/AssetList";
 import { AssetForm } from "@/components/AssetForm";
 import { InspectionForm } from "@/components/InspectionForm";
+import { InspectionList } from "@/components/InspectionList";
 import Auth from "@/pages/Auth";
 
 function App() {
@@ -23,7 +24,7 @@ function App() {
             <Route path="assets/new" element={<AssetForm />} />
             <Route path="assets/:id/edit" element={<AssetForm />} />
             <Route path="assets/:id/inspect" element={<InspectionForm />} />
-            <Route path="inspections" element={<div>Inspections Page</div>} />
+            <Route path="inspections" element={<InspectionList />} />
             <Route path="reports" element={<div>Reports Page</div>} />
             <Route path="settings" element={<div>Settings Page</div>} />
           </Route>
