@@ -11,6 +11,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Search, Edit, Trash2, Plus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -78,25 +84,23 @@ export function InspectionList() {
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-bold tracking-tight">Inspections</h2>
         {assets && assets.length > 0 && (
-          <div className="flex items-center space-x-2">
-            <select
-              className="border rounded px-3 py-1"
-              onChange={(e) => navigate(`/assets/${e.target.value}/inspect`)}
-              value=""
-            >
-              <option value="" disabled>
-                Select Asset to Inspect
-              </option>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                <Plus className="mr-2 h-4 w-4" /> New Inspection
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-[200px]">
               {assets.map((asset) => (
-                <option key={asset.id} value={asset.id}>
+                <DropdownMenuItem
+                  key={asset.id}
+                  onClick={() => navigate(`/assets/${asset.id}/inspect`)}
+                >
                   {asset.name}
-                </option>
+                </DropdownMenuItem>
               ))}
-            </select>
-            <Button onClick={() => navigate(`/assets/${assets[0].id}/inspect`)}>
-              <Plus className="mr-2 h-4 w-4" /> New Inspection
-            </Button>
-          </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
         )}
       </div>
 
