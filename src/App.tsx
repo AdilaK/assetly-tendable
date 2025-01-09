@@ -9,26 +9,36 @@ import { AssetList } from "./components/AssetList";
 import { AssetForm } from "./components/AssetForm";
 import { InspectionForm } from "./components/InspectionForm";
 
-const queryClient = new QueryClient();
+// Create a client
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5000,
+      retry: 1,
+    },
+  },
+});
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/assets" element={<AssetList />} />
-            <Route path="/assets/new" element={<AssetForm />} />
-            <Route path="/assets/:id/edit" element={<AssetForm />} />
-            <Route path="/assets/:id/inspect" element={<InspectionForm />} />
-          </Routes>
-        </Layout>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Layout>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/assets" element={<AssetList />} />
+              <Route path="/assets/new" element={<AssetForm />} />
+              <Route path="/assets/:id/edit" element={<AssetForm />} />
+              <Route path="/assets/:id/inspect" element={<InspectionForm />} />
+            </Routes>
+          </Layout>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+}
 
 export default App;
