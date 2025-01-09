@@ -8,9 +8,9 @@ import { AssetForm } from "@/components/AssetForm";
 import { InspectionForm } from "@/components/InspectionForm";
 import Auth from "@/pages/Auth";
 
-const queryClient = new QueryClient();
-
 function App() {
+  const queryClient = new QueryClient();
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>
@@ -25,8 +25,8 @@ function App() {
             <Route path="assets/:id/inspect" element={<InspectionForm />} />
           </Route>
         </Routes>
+        <Toaster />
       </Router>
-      <Toaster />
     </QueryClientProvider>
   );
 }
