@@ -19,8 +19,8 @@ export function AppSidebar() {
   };
 
   return (
-    <div className="w-64 border-r bg-muted/40 p-6">
-      <nav className="space-y-2">
+    <div className="w-64 border-r bg-muted/40 p-6 flex flex-col h-full">
+      <nav className="space-y-2 flex-1">
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
@@ -78,16 +78,16 @@ export function AppSidebar() {
         </NavLink>
       </nav>
 
-      <div className="absolute bottom-6 left-6 right-6">
-        <Button
-          variant="outline"
-          className="w-full justify-start space-x-2"
-          onClick={handleLogout}
-        >
-          <LogOut className="h-4 w-4" />
-          <span>Sign Out</span>
-        </Button>
-      </div>
+      <Button
+        variant="ghost"
+        size="icon"
+        className="self-start mt-auto"
+        onClick={handleLogout}
+        title="Sign Out"
+      >
+        <LogOut className="h-4 w-4" />
+        <span className="sr-only">Sign Out</span>
+      </Button>
     </div>
   );
 }
