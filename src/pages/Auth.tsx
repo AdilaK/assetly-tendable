@@ -51,9 +51,16 @@ const Auth = () => {
 
   return (
     <div className="container mx-auto max-w-md p-8">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold">Welcome Back</h1>
-        <p className="text-muted-foreground">Sign in to your account to continue</p>
+      <div className="mb-8 text-center">
+        <div className="flex flex-col items-center justify-center mb-6">
+          <h1 className="text-4xl font-bold tracking-tight mb-2">
+            <span className="text-foreground">Asset</span>
+            <span className="text-[#0EA5E9]">Flow</span>
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Intelligent equipment monitoring
+          </p>
+        </div>
       </div>
 
       {errorMessage && (
