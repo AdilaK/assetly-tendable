@@ -32,24 +32,44 @@ interface CategorySelectProps {
 
 export function CategorySelect({ form }: CategorySelectProps) {
   const [open, setOpen] = useState(false);
-  const [newCategory, setNewCategory] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
   const { data: categories = [], isLoading, error, refetch } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("categories").select("*");
+      const { data, error } = await supabase
+        .from("categories")
+        .select("*")
+        .order("name");
       if (error) throw error;
       return data || [];
     },
   });
 
+  const filteredCategories = categories.filter((category) =>
+    category.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const createCategory = async () => {
-    if (!newCategory.trim()) return;
+    if (!searchTerm.trim()) return;
+
+    // Check if category already exists
+    const exists = categories.some(
+      (cat) => cat.name.toLowerCase() === searchTerm.toLowerCase()
+    );
+    if (exists) {
+      toast({
+        title: "Category already exists",
+        description: "Please select from existing categories or use a different name",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { data, error } = await supabase
       .from("categories")
-      .insert({ name: newCategory.trim() })
+      .insert({ name: searchTerm.trim() })
       .select()
       .single();
 
@@ -65,7 +85,7 @@ export function CategorySelect({ form }: CategorySelectProps) {
         description: "Category created successfully",
       });
       form.setValue("category_id", data.id);
-      setNewCategory("");
+      setSearchTerm("");
       setOpen(false);
       refetch();
     }
@@ -115,8 +135,8 @@ export function CategorySelect({ form }: CategorySelectProps) {
               <Command>
                 <CommandInput
                   placeholder="Search category..."
-                  value={newCategory}
-                  onValueChange={setNewCategory}
+                  value={searchTerm}
+                  onValueChange={setSearchTerm}
                 />
                 <CommandEmpty>
                   <div className="p-2">
@@ -127,15 +147,15 @@ export function CategorySelect({ form }: CategorySelectProps) {
                       onClick={createCategory}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Create "{newCategory}"
+                      Create "{searchTerm}"
                     </Button>
                   </div>
                 </CommandEmpty>
                 <CommandGroup>
-                  {categories.map((category) => (
+                  {filteredCategories.map((category) => (
                     <CommandItem
-                      value={category.name}
                       key={category.id}
+                      value={category.name}
                       onSelect={() => {
                         form.setValue("category_id", category.id);
                         setOpen(false);

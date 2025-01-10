@@ -32,24 +32,44 @@ interface LocationSelectProps {
 
 export function LocationSelect({ form }: LocationSelectProps) {
   const [open, setOpen] = useState(false);
-  const [newLocation, setNewLocation] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
   const { data: locations = [], isLoading, error, refetch } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
-      const { data, error } = await supabase.from("locations").select("*");
+      const { data, error } = await supabase
+        .from("locations")
+        .select("*")
+        .order("name");
       if (error) throw error;
       return data || [];
     },
   });
 
+  const filteredLocations = locations.filter((location) =>
+    location.name.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
   const createLocation = async () => {
-    if (!newLocation.trim()) return;
+    if (!searchTerm.trim()) return;
+
+    // Check if location already exists
+    const exists = locations.some(
+      (loc) => loc.name.toLowerCase() === searchTerm.toLowerCase()
+    );
+    if (exists) {
+      toast({
+        title: "Location already exists",
+        description: "Please select from existing locations or use a different name",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { data, error } = await supabase
       .from("locations")
-      .insert({ name: newLocation.trim() })
+      .insert({ name: searchTerm.trim() })
       .select()
       .single();
 
@@ -65,7 +85,7 @@ export function LocationSelect({ form }: LocationSelectProps) {
         description: "Location created successfully",
       });
       form.setValue("location_id", data.id);
-      setNewLocation("");
+      setSearchTerm("");
       setOpen(false);
       refetch();
     }
@@ -115,8 +135,8 @@ export function LocationSelect({ form }: LocationSelectProps) {
               <Command>
                 <CommandInput
                   placeholder="Search location..."
-                  value={newLocation}
-                  onValueChange={setNewLocation}
+                  value={searchTerm}
+                  onValueChange={setSearchTerm}
                 />
                 <CommandEmpty>
                   <div className="p-2">
@@ -127,15 +147,15 @@ export function LocationSelect({ form }: LocationSelectProps) {
                       onClick={createLocation}
                     >
                       <Plus className="mr-2 h-4 w-4" />
-                      Create "{newLocation}"
+                      Create "{searchTerm}"
                     </Button>
                   </div>
                 </CommandEmpty>
                 <CommandGroup>
-                  {locations.map((location) => (
+                  {filteredLocations.map((location) => (
                     <CommandItem
-                      value={location.name}
                       key={location.id}
+                      value={location.name}
                       onSelect={() => {
                         form.setValue("location_id", location.id);
                         setOpen(false);
