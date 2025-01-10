@@ -20,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,12 +35,12 @@ export function LocationSelect({ form }: LocationSelectProps) {
   const [newLocation, setNewLocation] = useState("");
   const { toast } = useToast();
 
-  const { data: locations, refetch } = useQuery({
+  const { data: locations, isLoading, error, refetch } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
       const { data, error } = await supabase.from("locations").select("*");
       if (error) throw error;
-      return data;
+      return data || [];  // Ensure we always return an array
     },
   });
 
@@ -67,6 +67,15 @@ export function LocationSelect({ form }: LocationSelectProps) {
     }
   };
 
+  if (error) {
+    return (
+      <FormItem>
+        <FormLabel>Location</FormLabel>
+        <div className="text-sm text-destructive">Failed to load locations</div>
+      </FormItem>
+    );
+  }
+
   return (
     <FormField
       control={form.control}
@@ -80,15 +89,20 @@ export function LocationSelect({ form }: LocationSelectProps) {
                 <Button
                   variant="outline"
                   role="combobox"
+                  disabled={isLoading}
                   className={cn(
                     "w-full justify-between",
                     !field.value && "text-muted-foreground"
                   )}
                 >
-                  {field.value
-                    ? locations?.find((location) => location.id === field.value)
-                        ?.name
-                    : "Select location"}
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : field.value ? (
+                    locations?.find((location) => location.id === field.value)
+                      ?.name || "Select location"
+                  ) : (
+                    "Select location"
+                  )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>

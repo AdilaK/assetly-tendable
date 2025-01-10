@@ -20,7 +20,7 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Plus } from "lucide-react";
+import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
@@ -35,12 +35,12 @@ export function CategorySelect({ form }: CategorySelectProps) {
   const [newCategory, setNewCategory] = useState("");
   const { toast } = useToast();
 
-  const { data: categories, refetch } = useQuery({
+  const { data: categories, isLoading, error, refetch } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase.from("categories").select("*");
       if (error) throw error;
-      return data;
+      return data || [];  // Ensure we always return an array
     },
   });
 
@@ -67,6 +67,15 @@ export function CategorySelect({ form }: CategorySelectProps) {
     }
   };
 
+  if (error) {
+    return (
+      <FormItem>
+        <FormLabel>Category</FormLabel>
+        <div className="text-sm text-destructive">Failed to load categories</div>
+      </FormItem>
+    );
+  }
+
   return (
     <FormField
       control={form.control}
@@ -80,15 +89,20 @@ export function CategorySelect({ form }: CategorySelectProps) {
                 <Button
                   variant="outline"
                   role="combobox"
+                  disabled={isLoading}
                   className={cn(
                     "w-full justify-between",
                     !field.value && "text-muted-foreground"
                   )}
                 >
-                  {field.value
-                    ? categories?.find((category) => category.id === field.value)
-                        ?.name
-                    : "Select category"}
+                  {isLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : field.value ? (
+                    categories?.find((category) => category.id === field.value)
+                      ?.name || "Select category"
+                  ) : (
+                    "Select category"
+                  )}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
