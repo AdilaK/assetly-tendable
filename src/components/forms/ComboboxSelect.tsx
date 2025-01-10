@@ -46,6 +46,15 @@ export function ComboboxSelect({
   onCreateNew,
 }: ComboboxSelectProps) {
   const [open, setOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const handleCreateNew = () => {
+    if (searchTerm.trim()) {
+      onCreateNew(searchTerm.trim());
+      setSearchTerm("");
+      setOpen(false);
+    }
+  };
 
   return (
     <FormField
@@ -79,19 +88,17 @@ export function ComboboxSelect({
             </PopoverTrigger>
             <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
               <Command>
-                <CommandInput placeholder={`Search ${label.toLowerCase()}...`} />
-                <CommandEmpty className="p-2">
+                <CommandInput 
+                  placeholder={`Search ${label.toLowerCase()}...`}
+                  value={searchTerm}
+                  onValueChange={setSearchTerm}
+                />
+                <CommandEmpty>
                   <Button
+                    type="button"
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={() => {
-                      const searchTerm = document.querySelector<HTMLInputElement>(
-                        '[cmdk-input=""]'
-                      )?.value;
-                      if (searchTerm) {
-                        onCreateNew(searchTerm);
-                      }
-                    }}
+                    onClick={handleCreateNew}
                   >
                     <PlusCircle className="mr-2 h-4 w-4" />
                     Create new {label.toLowerCase()}
