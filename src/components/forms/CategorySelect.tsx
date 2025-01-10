@@ -47,9 +47,11 @@ export function CategorySelect({ form }: CategorySelectProps) {
   const createCategory = async () => {
     if (!newCategory.trim()) return;
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("categories")
-      .insert({ name: newCategory.trim() });
+      .insert({ name: newCategory.trim() })
+      .select()
+      .single();
 
     if (error) {
       toast({
@@ -62,7 +64,9 @@ export function CategorySelect({ form }: CategorySelectProps) {
         title: "Success",
         description: "Category created successfully",
       });
+      form.setValue("category_id", data.id);
       setNewCategory("");
+      setOpen(false);
       refetch();
     }
   };

@@ -47,9 +47,11 @@ export function LocationSelect({ form }: LocationSelectProps) {
   const createLocation = async () => {
     if (!newLocation.trim()) return;
 
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("locations")
-      .insert({ name: newLocation.trim() });
+      .insert({ name: newLocation.trim() })
+      .select()
+      .single();
 
     if (error) {
       toast({
@@ -62,7 +64,9 @@ export function LocationSelect({ form }: LocationSelectProps) {
         title: "Success",
         description: "Location created successfully",
       });
+      form.setValue("location_id", data.id);
       setNewLocation("");
+      setOpen(false);
       refetch();
     }
   };
