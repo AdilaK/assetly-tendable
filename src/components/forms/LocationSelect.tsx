@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ComboboxSelect } from "./ComboboxSelect";
+import { useNavigate } from "react-router-dom";
 
 interface LocationSelectProps {
   form: UseFormReturn<any>;
@@ -11,10 +12,22 @@ interface LocationSelectProps {
 export function LocationSelect({ form }: LocationSelectProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const { data: locations = [], isLoading } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
+      const { data: session } = await supabase.auth.getSession();
+      if (!session.session) {
+        toast({
+          title: "Authentication required",
+          description: "Please sign in to view locations",
+          variant: "destructive",
+        });
+        navigate("/auth");
+        return [];
+      }
+
       const { data, error } = await supabase
         .from("locations")
         .select("*")
@@ -34,6 +47,17 @@ export function LocationSelect({ form }: LocationSelectProps) {
   const createLocation = async (name: string) => {
     if (!name.trim()) return;
     
+    const { data: session } = await supabase.auth.getSession();
+    if (!session.session) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to create locations",
+        variant: "destructive",
+      });
+      navigate("/auth");
+      return;
+    }
+
     // Check if location already exists
     const existingLocation = locations.find(
       (loc) => loc.name.toLowerCase() === name.toLowerCase()
@@ -55,6 +79,7 @@ export function LocationSelect({ form }: LocationSelectProps) {
         description: "Failed to create location",
         variant: "destructive",
       });
+      console.error("Error creating location:", error);
       return;
     }
 
