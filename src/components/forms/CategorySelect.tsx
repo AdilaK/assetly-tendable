@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -20,11 +23,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { UseFormReturn } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
 
 interface CategorySelectProps {
   form: UseFormReturn<any>;
@@ -32,10 +32,9 @@ interface CategorySelectProps {
 
 export function CategorySelect({ form }: CategorySelectProps) {
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  const { data: categories = [], isLoading, error, refetch } = useQuery({
+  const { data: categories = [], isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,29 +46,10 @@ export function CategorySelect({ form }: CategorySelectProps) {
     },
   });
 
-  const filteredCategories = categories.filter((category) =>
-    category.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const createCategory = async () => {
-    if (!searchTerm.trim()) return;
-
-    // Check if category already exists
-    const exists = categories.some(
-      (cat) => cat.name.toLowerCase() === searchTerm.toLowerCase()
-    );
-    if (exists) {
-      toast({
-        title: "Category already exists",
-        description: "Please select from existing categories or use a different name",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const createCategory = async (name: string) => {
     const { data, error } = await supabase
       .from("categories")
-      .insert({ name: searchTerm.trim() })
+      .insert([{ name }])
       .select()
       .single();
 
@@ -79,26 +59,16 @@ export function CategorySelect({ form }: CategorySelectProps) {
         description: "Failed to create category",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Category created successfully",
-      });
-      form.setValue("category_id", data.id);
-      setSearchTerm("");
-      setOpen(false);
-      refetch();
+      throw error;
     }
-  };
 
-  if (error) {
-    return (
-      <FormItem>
-        <FormLabel>Category</FormLabel>
-        <div className="text-sm text-destructive">Failed to load categories</div>
-      </FormItem>
-    );
-  }
+    toast({
+      title: "Success",
+      description: "Category created successfully",
+    });
+
+    return data;
+  };
 
   return (
     <FormField
@@ -113,51 +83,58 @@ export function CategorySelect({ form }: CategorySelectProps) {
                 <Button
                   variant="outline"
                   role="combobox"
-                  disabled={isLoading}
+                  aria-expanded={open}
                   className={cn(
                     "w-full justify-between",
                     !field.value && "text-muted-foreground"
                   )}
+                  disabled={isLoading}
                 >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : field.value ? (
-                    categories?.find((category) => category.id === field.value)
-                      ?.name || "Select category"
-                  ) : (
-                    "Select category"
-                  )}
+                  {isLoading
+                    ? "Loading..."
+                    : field.value
+                    ? categories.find((category) => category.id === field.value)
+                        ?.name
+                    : "Select category"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0">
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
               <Command>
-                <CommandInput
-                  placeholder="Search category..."
-                  value={searchTerm}
-                  onValueChange={setSearchTerm}
-                />
-                <CommandEmpty>
-                  <div className="p-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={createCategory}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create "{searchTerm}"
-                    </Button>
-                  </div>
+                <CommandInput placeholder="Search category..." />
+                <CommandEmpty className="p-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={async () => {
+                      try {
+                        const searchTerm = document.querySelector<HTMLInputElement>(
+                          '[cmdk-input=""]'
+                        )?.value;
+                        if (!searchTerm) return;
+
+                        const newCategory = await createCategory(searchTerm);
+                        field.onChange(newCategory.id);
+                        setOpen(false);
+                      } catch (error) {
+                        console.error("Error creating category:", error);
+                      }
+                    }}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create "{document.querySelector<HTMLInputElement>(
+                      '[cmdk-input=""]'
+                    )?.value || ''}"
+                  </Button>
                 </CommandEmpty>
                 <CommandGroup>
-                  {filteredCategories.map((category) => (
+                  {categories.map((category) => (
                     <CommandItem
                       key={category.id}
                       value={category.name}
                       onSelect={() => {
-                        form.setValue("category_id", category.id);
+                        field.onChange(category.id);
                         setOpen(false);
                       }}
                     >

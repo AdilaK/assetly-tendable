@@ -1,5 +1,8 @@
 import { useState } from "react";
+import { Check, ChevronsUpDown, PlusCircle } from "lucide-react";
+import { UseFormReturn } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import {
   Command,
@@ -20,11 +23,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Check, ChevronsUpDown, Plus, Loader2 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import { UseFormReturn } from "react-hook-form";
+import { supabase } from "@/integrations/supabase/client";
 
 interface LocationSelectProps {
   form: UseFormReturn<any>;
@@ -32,10 +32,9 @@ interface LocationSelectProps {
 
 export function LocationSelect({ form }: LocationSelectProps) {
   const [open, setOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
   const { toast } = useToast();
 
-  const { data: locations = [], isLoading, error, refetch } = useQuery({
+  const { data: locations = [], isLoading } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -47,29 +46,10 @@ export function LocationSelect({ form }: LocationSelectProps) {
     },
   });
 
-  const filteredLocations = locations.filter((location) =>
-    location.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const createLocation = async () => {
-    if (!searchTerm.trim()) return;
-
-    // Check if location already exists
-    const exists = locations.some(
-      (loc) => loc.name.toLowerCase() === searchTerm.toLowerCase()
-    );
-    if (exists) {
-      toast({
-        title: "Location already exists",
-        description: "Please select from existing locations or use a different name",
-        variant: "destructive",
-      });
-      return;
-    }
-
+  const createLocation = async (name: string) => {
     const { data, error } = await supabase
       .from("locations")
-      .insert({ name: searchTerm.trim() })
+      .insert([{ name }])
       .select()
       .single();
 
@@ -79,26 +59,16 @@ export function LocationSelect({ form }: LocationSelectProps) {
         description: "Failed to create location",
         variant: "destructive",
       });
-    } else {
-      toast({
-        title: "Success",
-        description: "Location created successfully",
-      });
-      form.setValue("location_id", data.id);
-      setSearchTerm("");
-      setOpen(false);
-      refetch();
+      throw error;
     }
-  };
 
-  if (error) {
-    return (
-      <FormItem>
-        <FormLabel>Location</FormLabel>
-        <div className="text-sm text-destructive">Failed to load locations</div>
-      </FormItem>
-    );
-  }
+    toast({
+      title: "Success",
+      description: "Location created successfully",
+    });
+
+    return data;
+  };
 
   return (
     <FormField
@@ -113,51 +83,58 @@ export function LocationSelect({ form }: LocationSelectProps) {
                 <Button
                   variant="outline"
                   role="combobox"
-                  disabled={isLoading}
+                  aria-expanded={open}
                   className={cn(
                     "w-full justify-between",
                     !field.value && "text-muted-foreground"
                   )}
+                  disabled={isLoading}
                 >
-                  {isLoading ? (
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  ) : field.value ? (
-                    locations?.find((location) => location.id === field.value)
-                      ?.name || "Select location"
-                  ) : (
-                    "Select location"
-                  )}
+                  {isLoading
+                    ? "Loading..."
+                    : field.value
+                    ? locations.find((location) => location.id === field.value)
+                        ?.name
+                    : "Select location"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
             </PopoverTrigger>
-            <PopoverContent className="w-[300px] p-0">
+            <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
               <Command>
-                <CommandInput
-                  placeholder="Search location..."
-                  value={searchTerm}
-                  onValueChange={setSearchTerm}
-                />
-                <CommandEmpty>
-                  <div className="p-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="w-full justify-start"
-                      onClick={createLocation}
-                    >
-                      <Plus className="mr-2 h-4 w-4" />
-                      Create "{searchTerm}"
-                    </Button>
-                  </div>
+                <CommandInput placeholder="Search location..." />
+                <CommandEmpty className="p-2">
+                  <Button
+                    variant="outline"
+                    className="w-full justify-start"
+                    onClick={async () => {
+                      try {
+                        const searchTerm = document.querySelector<HTMLInputElement>(
+                          '[cmdk-input=""]'
+                        )?.value;
+                        if (!searchTerm) return;
+
+                        const newLocation = await createLocation(searchTerm);
+                        field.onChange(newLocation.id);
+                        setOpen(false);
+                      } catch (error) {
+                        console.error("Error creating location:", error);
+                      }
+                    }}
+                  >
+                    <PlusCircle className="mr-2 h-4 w-4" />
+                    Create "{document.querySelector<HTMLInputElement>(
+                      '[cmdk-input=""]'
+                    )?.value || ''}"
+                  </Button>
                 </CommandEmpty>
                 <CommandGroup>
-                  {filteredLocations.map((location) => (
+                  {locations.map((location) => (
                     <CommandItem
                       key={location.id}
                       value={location.name}
                       onSelect={() => {
-                        form.setValue("location_id", location.id);
+                        field.onChange(location.id);
                         setOpen(false);
                       }}
                     >
