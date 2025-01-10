@@ -41,7 +41,7 @@ export function ComboboxSelect({
   form,
   name,
   label,
-  items,
+  items = [], // Provide default empty array
   isLoading,
   onCreateNew,
 }: ComboboxSelectProps) {
@@ -55,6 +55,10 @@ export function ComboboxSelect({
       setOpen(false);
     }
   };
+
+  // Get the selected item's name
+  const selectedItem = items.find((item) => item.id === form.getValues(name));
+  const displayValue = selectedItem?.name || `Select ${label.toLowerCase()}`;
 
   return (
     <FormField
@@ -76,12 +80,7 @@ export function ComboboxSelect({
                   )}
                   disabled={isLoading}
                 >
-                  {isLoading
-                    ? "Loading..."
-                    : field.value
-                    ? items.find((item) => item.id === field.value)?.name ||
-                      `Select ${label.toLowerCase()}`
-                    : `Select ${label.toLowerCase()}`}
+                  {isLoading ? "Loading..." : displayValue}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
               </FormControl>
