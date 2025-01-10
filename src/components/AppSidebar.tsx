@@ -1,8 +1,31 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { LayoutDashboard, Package2, ClipboardList, FileText, Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
 
 export function AppSidebar() {
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Logged out successfully",
+        description: "You have been logged out of your account",
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Error logging out:", error);
+      toast({
+        variant: "destructive",
+        title: "Error logging out",
+        description: "There was a problem logging out. Please try again.",
+      });
+    }
+  };
+
   return (
     <div className="flex-1 bg-[#221F26] p-6 flex flex-col h-full">
       <nav className="space-y-2 flex-1">
@@ -65,6 +88,7 @@ export function AppSidebar() {
       <Button
         variant="ghost"
         className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
+        onClick={handleLogout}
       >
         <LogOut className="h-4 w-4 mr-2" />
         Logout
