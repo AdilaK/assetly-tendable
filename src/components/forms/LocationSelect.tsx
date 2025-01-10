@@ -41,12 +41,29 @@ export function LocationSelect({ form }: LocationSelectProps) {
         .from("locations")
         .select("*")
         .order("name");
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Error loading locations",
+          description: error.message,
+          variant: "destructive",
+        });
+        return [];
+      }
       return data || [];
     },
   });
 
   const createLocation = async (name: string) => {
+    // Check if location already exists
+    const existingLocation = locations.find(
+      (loc) => loc.name.toLowerCase() === name.toLowerCase()
+    );
+    if (existingLocation) {
+      form.setValue("location_id", existingLocation.id);
+      setOpen(false);
+      return existingLocation;
+    }
+
     const { data, error } = await supabase
       .from("locations")
       .insert([{ name }])
@@ -94,7 +111,7 @@ export function LocationSelect({ form }: LocationSelectProps) {
                     ? "Loading..."
                     : field.value
                     ? locations.find((location) => location.id === field.value)
-                        ?.name
+                        ?.name || "Select location"
                     : "Select location"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>

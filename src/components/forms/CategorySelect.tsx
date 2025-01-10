@@ -41,12 +41,29 @@ export function CategorySelect({ form }: CategorySelectProps) {
         .from("categories")
         .select("*")
         .order("name");
-      if (error) throw error;
+      if (error) {
+        toast({
+          title: "Error loading categories",
+          description: error.message,
+          variant: "destructive",
+        });
+        return [];
+      }
       return data || [];
     },
   });
 
   const createCategory = async (name: string) => {
+    // Check if category already exists
+    const existingCategory = categories.find(
+      (cat) => cat.name.toLowerCase() === name.toLowerCase()
+    );
+    if (existingCategory) {
+      form.setValue("category_id", existingCategory.id);
+      setOpen(false);
+      return existingCategory;
+    }
+
     const { data, error } = await supabase
       .from("categories")
       .insert([{ name }])
@@ -94,7 +111,7 @@ export function CategorySelect({ form }: CategorySelectProps) {
                     ? "Loading..."
                     : field.value
                     ? categories.find((category) => category.id === field.value)
-                        ?.name
+                        ?.name || "Select category"
                     : "Select category"}
                   <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                 </Button>
