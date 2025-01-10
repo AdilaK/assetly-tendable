@@ -15,22 +15,37 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 
-type FormValues = {
-  maintenance_date: string;
-  description: string;
-  cost: number;
-  performed_by: string;
-  next_maintenance_date: string;
-  checklist_completed: boolean;
-  checklist_notes: string;
-};
+const formSchema = z.object({
+  maintenance_date: z.string().min(1, "Inspection date is required"),
+  description: z.string().min(1, "Inspection notes are required"),
+  cost: z.number().optional(),
+  performed_by: z.string().min(1, "Inspector name is required"),
+  next_maintenance_date: z.string().min(1, "Next inspection date is required"),
+  checklist_completed: z.boolean().default(false),
+  checklist_notes: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
 
 export function InspectionForm() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const form = useForm<FormValues>();
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      maintenance_date: new Date().toISOString().split("T")[0],
+      description: "",
+      cost: 0,
+      performed_by: "",
+      next_maintenance_date: "",
+      checklist_completed: false,
+      checklist_notes: "",
+    },
+  });
 
   const { data: asset } = useQuery({
     queryKey: ["asset", id],
@@ -40,7 +55,7 @@ export function InspectionForm() {
         .from("assets")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -48,21 +63,29 @@ export function InspectionForm() {
   });
 
   const onSubmit = async (values: FormValues) => {
-    if (!id) return;
+    if (!id) {
+      toast({
+        title: "Error",
+        description: "Asset ID is missing",
+        variant: "destructive",
+      });
+      return;
+    }
 
     const { error } = await supabase.from("maintenance_records").insert({
       asset_id: id,
       maintenance_date: values.maintenance_date,
       description: values.description,
-      cost: values.cost,
+      cost: values.cost || 0,
       performed_by: values.performed_by,
       next_maintenance_date: values.next_maintenance_date,
     });
 
     if (error) {
+      console.error("Error saving inspection:", error);
       toast({
         title: "Error",
-        description: "Failed to save inspection",
+        description: "Failed to save inspection: " + error.message,
         variant: "destructive",
       });
     } else {
@@ -94,7 +117,6 @@ export function InspectionForm() {
                   <Input
                     type="date"
                     {...field}
-                    defaultValue={new Date().toISOString().split("T")[0]}
                   />
                 </FormControl>
                 <FormMessage />
@@ -141,7 +163,7 @@ export function InspectionForm() {
                     type="number"
                     {...field}
                     onChange={(e) =>
-                      field.onChange(parseFloat(e.target.value) || 0)
+                      field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
                     }
                   />
                 </FormControl>
