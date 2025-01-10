@@ -80,13 +80,11 @@ export function AppSidebar() {
 
       <Button
         variant="ghost"
-        size="icon"
-        className="self-start mt-auto"
+        className="self-start mt-auto flex items-center gap-2"
         onClick={handleLogout}
-        title="Sign Out"
       >
         <LogOut className="h-4 w-4" />
-        <span className="sr-only">Sign Out</span>
+        <span>Sign Out</span>
       </Button>
     </div>
   );
