@@ -35,12 +35,12 @@ export function CategorySelect({ form }: CategorySelectProps) {
   const [newCategory, setNewCategory] = useState("");
   const { toast } = useToast();
 
-  const { data: categories, isLoading, error, refetch } = useQuery({
+  const { data: categories = [], isLoading, error, refetch } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
       const { data, error } = await supabase.from("categories").select("*");
       if (error) throw error;
-      return data || [];  // Ensure we always return an array
+      return data || [];
     },
   });
 
@@ -132,7 +132,7 @@ export function CategorySelect({ form }: CategorySelectProps) {
                   </div>
                 </CommandEmpty>
                 <CommandGroup>
-                  {categories?.map((category) => (
+                  {categories.map((category) => (
                     <CommandItem
                       value={category.name}
                       key={category.id}

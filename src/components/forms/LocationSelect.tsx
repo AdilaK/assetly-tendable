@@ -35,12 +35,12 @@ export function LocationSelect({ form }: LocationSelectProps) {
   const [newLocation, setNewLocation] = useState("");
   const { toast } = useToast();
 
-  const { data: locations, isLoading, error, refetch } = useQuery({
+  const { data: locations = [], isLoading, error, refetch } = useQuery({
     queryKey: ["locations"],
     queryFn: async () => {
       const { data, error } = await supabase.from("locations").select("*");
       if (error) throw error;
-      return data || [];  // Ensure we always return an array
+      return data || [];
     },
   });
 
@@ -132,7 +132,7 @@ export function LocationSelect({ form }: LocationSelectProps) {
                   </div>
                 </CommandEmpty>
                 <CommandGroup>
-                  {locations?.map((location) => (
+                  {locations.map((location) => (
                     <CommandItem
                       value={location.name}
                       key={location.id}
