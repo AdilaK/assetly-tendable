@@ -3,7 +3,6 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ComboboxSelect } from "./ComboboxSelect";
-import { useNavigate } from "react-router-dom";
 
 interface CategorySelectProps {
   form: UseFormReturn<any>;
@@ -12,22 +11,10 @@ interface CategorySelectProps {
 export function CategorySelect({ form }: CategorySelectProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const navigate = useNavigate();
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ["categories"],
     queryFn: async () => {
-      const { data: session } = await supabase.auth.getSession();
-      if (!session.session) {
-        toast({
-          title: "Authentication required",
-          description: "Please sign in to view categories",
-          variant: "destructive",
-        });
-        navigate("/auth");
-        return [];
-      }
-
       const { data, error } = await supabase
         .from("categories")
         .select("*")
@@ -47,17 +34,6 @@ export function CategorySelect({ form }: CategorySelectProps) {
   const createCategory = async (name: string) => {
     if (!name.trim()) return;
     
-    const { data: session } = await supabase.auth.getSession();
-    if (!session.session) {
-      toast({
-        title: "Authentication required",
-        description: "Please sign in to create categories",
-        variant: "destructive",
-      });
-      navigate("/auth");
-      return;
-    }
-
     // Check if category already exists
     const existingCategory = categories.find(
       (cat) => cat.name.toLowerCase() === name.toLowerCase()
