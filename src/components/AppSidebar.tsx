@@ -62,6 +62,13 @@ export function AppSidebar() {
           <span>Settings</span>
         </NavLink>
       </nav>
+      <Button
+        variant="ghost"
+        className="w-full justify-start text-gray-300 hover:bg-gray-800 hover:text-white"
+      >
+        <LogOut className="h-4 w-4 mr-2" />
+        Logout
+      </Button>
     </div>
   );
 }
