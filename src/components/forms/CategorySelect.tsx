@@ -1,5 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ComboboxSelect } from "./ComboboxSelect";
@@ -10,6 +10,7 @@ interface CategorySelectProps {
 
 export function CategorySelect({ form }: CategorySelectProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: categories = [], isLoading } = useQuery({
     queryKey: ["categories"],
@@ -57,12 +58,18 @@ export function CategorySelect({ form }: CategorySelectProps) {
       return;
     }
 
+    // Invalidate the categories query to refresh the list
+    await queryClient.invalidateQueries({ queryKey: ["categories"] });
+
     toast({
       title: "Success",
       description: "Category created successfully",
     });
 
-    form.setValue("category_id", data.id);
+    // Set the form value to the newly created category
+    if (data) {
+      form.setValue("category_id", data.id);
+    }
   };
 
   return (

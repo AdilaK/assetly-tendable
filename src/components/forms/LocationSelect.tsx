@@ -1,5 +1,5 @@
 import { UseFormReturn } from "react-hook-form";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ComboboxSelect } from "./ComboboxSelect";
@@ -10,6 +10,7 @@ interface LocationSelectProps {
 
 export function LocationSelect({ form }: LocationSelectProps) {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const { data: locations = [], isLoading } = useQuery({
     queryKey: ["locations"],
@@ -57,12 +58,18 @@ export function LocationSelect({ form }: LocationSelectProps) {
       return;
     }
 
+    // Invalidate the locations query to refresh the list
+    await queryClient.invalidateQueries({ queryKey: ["locations"] });
+
     toast({
       title: "Success",
       description: "Location created successfully",
     });
 
-    form.setValue("location_id", data.id);
+    // Set the form value to the newly created location
+    if (data) {
+      form.setValue("location_id", data.id);
+    }
   };
 
   return (
