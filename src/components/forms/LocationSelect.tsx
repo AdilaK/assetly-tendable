@@ -54,6 +54,8 @@ export function LocationSelect({ form }: LocationSelectProps) {
   });
 
   const createLocation = async (name: string) => {
+    if (!name.trim()) return;
+    
     // Check if location already exists
     const existingLocation = locations.find(
       (loc) => loc.name.toLowerCase() === name.toLowerCase()
@@ -61,12 +63,12 @@ export function LocationSelect({ form }: LocationSelectProps) {
     if (existingLocation) {
       form.setValue("location_id", existingLocation.id);
       setOpen(false);
-      return existingLocation;
+      return;
     }
 
     const { data, error } = await supabase
       .from("locations")
-      .insert([{ name }])
+      .insert([{ name: name.trim() }])
       .select()
       .single();
 
@@ -76,7 +78,7 @@ export function LocationSelect({ form }: LocationSelectProps) {
         description: "Failed to create location",
         variant: "destructive",
       });
-      throw error;
+      return;
     }
 
     toast({
@@ -84,7 +86,8 @@ export function LocationSelect({ form }: LocationSelectProps) {
       description: "Location created successfully",
     });
 
-    return data;
+    form.setValue("location_id", data.id);
+    setOpen(false);
   };
 
   return (
@@ -124,25 +127,17 @@ export function LocationSelect({ form }: LocationSelectProps) {
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={async () => {
-                      try {
-                        const searchTerm = document.querySelector<HTMLInputElement>(
-                          '[cmdk-input=""]'
-                        )?.value;
-                        if (!searchTerm) return;
-
-                        const newLocation = await createLocation(searchTerm);
-                        field.onChange(newLocation.id);
-                        setOpen(false);
-                      } catch (error) {
-                        console.error("Error creating location:", error);
+                    onClick={() => {
+                      const searchTerm = document.querySelector<HTMLInputElement>(
+                        '[cmdk-input=""]'
+                      )?.value;
+                      if (searchTerm) {
+                        createLocation(searchTerm);
                       }
                     }}
                   >
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Create "{document.querySelector<HTMLInputElement>(
-                      '[cmdk-input=""]'
-                    )?.value || ''}"
+                    Create new location
                   </Button>
                 </CommandEmpty>
                 <CommandGroup>
@@ -151,7 +146,7 @@ export function LocationSelect({ form }: LocationSelectProps) {
                       key={location.id}
                       value={location.name}
                       onSelect={() => {
-                        field.onChange(location.id);
+                        form.setValue("location_id", location.id);
                         setOpen(false);
                       }}
                     >

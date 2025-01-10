@@ -54,6 +54,8 @@ export function CategorySelect({ form }: CategorySelectProps) {
   });
 
   const createCategory = async (name: string) => {
+    if (!name.trim()) return;
+    
     // Check if category already exists
     const existingCategory = categories.find(
       (cat) => cat.name.toLowerCase() === name.toLowerCase()
@@ -61,12 +63,12 @@ export function CategorySelect({ form }: CategorySelectProps) {
     if (existingCategory) {
       form.setValue("category_id", existingCategory.id);
       setOpen(false);
-      return existingCategory;
+      return;
     }
 
     const { data, error } = await supabase
       .from("categories")
-      .insert([{ name }])
+      .insert([{ name: name.trim() }])
       .select()
       .single();
 
@@ -76,7 +78,7 @@ export function CategorySelect({ form }: CategorySelectProps) {
         description: "Failed to create category",
         variant: "destructive",
       });
-      throw error;
+      return;
     }
 
     toast({
@@ -84,7 +86,8 @@ export function CategorySelect({ form }: CategorySelectProps) {
       description: "Category created successfully",
     });
 
-    return data;
+    form.setValue("category_id", data.id);
+    setOpen(false);
   };
 
   return (
@@ -124,25 +127,17 @@ export function CategorySelect({ form }: CategorySelectProps) {
                   <Button
                     variant="outline"
                     className="w-full justify-start"
-                    onClick={async () => {
-                      try {
-                        const searchTerm = document.querySelector<HTMLInputElement>(
-                          '[cmdk-input=""]'
-                        )?.value;
-                        if (!searchTerm) return;
-
-                        const newCategory = await createCategory(searchTerm);
-                        field.onChange(newCategory.id);
-                        setOpen(false);
-                      } catch (error) {
-                        console.error("Error creating category:", error);
+                    onClick={() => {
+                      const searchTerm = document.querySelector<HTMLInputElement>(
+                        '[cmdk-input=""]'
+                      )?.value;
+                      if (searchTerm) {
+                        createCategory(searchTerm);
                       }
                     }}
                   >
                     <PlusCircle className="mr-2 h-4 w-4" />
-                    Create "{document.querySelector<HTMLInputElement>(
-                      '[cmdk-input=""]'
-                    )?.value || ''}"
+                    Create new category
                   </Button>
                 </CommandEmpty>
                 <CommandGroup>
@@ -151,7 +146,7 @@ export function CategorySelect({ form }: CategorySelectProps) {
                       key={category.id}
                       value={category.name}
                       onSelect={() => {
-                        field.onChange(category.id);
+                        form.setValue("category_id", category.id);
                         setOpen(false);
                       }}
                     >
