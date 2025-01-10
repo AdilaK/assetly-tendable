@@ -15,7 +15,7 @@ export function AppSidebar() {
         title: "Logged out successfully",
         description: "You have been logged out of your account",
       });
-      navigate("/");
+      navigate("/auth"); // Changed from "/" to "/auth"
     } catch (error) {
       console.error("Error logging out:", error);
       toast({
