@@ -114,10 +114,7 @@ export function InspectionForm() {
               <FormItem>
                 <FormLabel>Inspection Date</FormLabel>
                 <FormControl>
-                  <Input
-                    type="date"
-                    {...field}
-                  />
+                  <Input type="date" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -163,7 +160,9 @@ export function InspectionForm() {
                     type="number"
                     {...field}
                     onChange={(e) =>
-                      field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)
+                      field.onChange(
+                        e.target.value ? parseFloat(e.target.value) : undefined
+                      )
                     }
                   />
                 </FormControl>

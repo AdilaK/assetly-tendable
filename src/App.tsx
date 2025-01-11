@@ -7,7 +7,6 @@ import { AssetList } from "@/components/AssetList";
 import { AssetForm } from "@/components/AssetForm";
 import { InspectionForm } from "@/components/InspectionForm";
 import { InspectionList } from "@/components/InspectionList";
-import Auth from "@/pages/Auth";
 
 function App() {
   const queryClient = new QueryClient({
@@ -23,7 +22,6 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <Router>
         <Routes>
-          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<Layout />}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<Dashboard />} />
